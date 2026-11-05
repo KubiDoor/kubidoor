@@ -1,0 +1,12 @@
+.venv
+.git
+**/__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.db
+*.egg-info
+tests
+docs
+demo/kubeconfig*
+.env

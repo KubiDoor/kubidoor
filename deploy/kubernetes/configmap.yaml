@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubidoor-config
+  namespace: kubidoor
+  labels:
+    app.kubernetes.io/name: kubidoor
+data:
+  KUBIDOOR_LOG_LEVEL: "INFO"
+  KUBIDOOR_HOST: "0.0.0.0"
+  KUBIDOOR_PORT: "8000"
+  KUBIDOOR_DATABASE_URL: "sqlite:////data/kubidoor.db"
+  KUBIDOOR_MONITORING__INTERVAL_SECONDS: "30"
+  # Leave empty to monitor all namespaces, or restrict, e.g. '["prod","staging"]'
+  KUBIDOOR_MONITORING__NAMESPACES: "[]"
+  # --- Recovery safety model: OFF by default. Do not change without reading docs/recovery-policy.md.
+  KUBIDOOR_RECOVERY__ENABLED: "false"
+  KUBIDOOR_RECOVERY__DRY_RUN: "true"
+  KUBIDOOR_RECOVERY__REQUIRE_APPROVAL: "true"
+  KUBIDOOR_RECOVERY__ALLOWED_NAMESPACES: '["kubidoor-demo"]'
+  KUBIDOOR_RECOVERY__BLOCKED_NAMESPACES: '["kube-system"]'

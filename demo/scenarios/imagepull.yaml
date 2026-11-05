@@ -1,0 +1,13 @@
+# Scenario 2: ImagePullBackOff. The registry host never resolves (.invalid is reserved by RFC 2606).
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: demo-imagepull, namespace: kubidoor-demo, labels: {kubidoor.io/demo: "true"}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: demo-imagepull}}
+  template:
+    metadata: {labels: {app: demo-imagepull}}
+    spec:
+      containers:
+        - name: app
+          image: registry.invalid/kubidoor/does-not-exist:0.0.0

@@ -1,0 +1,15 @@
+# Scenario 1: CrashLoopBackOff. The container exits with code 1 immediately.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: demo-crashloop, namespace: kubidoor-demo, labels: {kubidoor.io/demo: "true"}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: demo-crashloop}}
+  template:
+    metadata: {labels: {app: demo-crashloop}}
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["sh", "-c", "echo 'fatal: cannot connect to database' >&2; exit 1"]
+          resources: {requests: {cpu: 5m, memory: 8Mi}, limits: {memory: 32Mi}}

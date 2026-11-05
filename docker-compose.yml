@@ -1,0 +1,63 @@
+# KubiDoor + Prometheus + Grafana.
+#
+# IMPORTANT: Docker Compose does NOT provide a Kubernetes cluster. KubiDoor needs a real cluster
+# to monitor. For the demo use `make demo-up`, which creates a local kind cluster, writes a
+# kubeconfig that is reachable from inside Docker (demo/kubeconfig.internal) and starts this stack.
+services:
+  kubidoor:
+    build: .
+    image: kubidoor:latest
+    container_name: kubidoor
+    environment:
+      KUBIDOOR_KUBERNETES__KUBECONFIG: /kube/config
+      KUBIDOOR_MONITORING__INTERVAL_SECONDS: "30"
+      # Demo-friendly thresholds so scenarios show up within ~1 minute (production defaults are
+      # more conservative: 300s grace / 120s not-ready).
+      KUBIDOOR_MONITORING__DEPLOYMENT_GRACE_SECONDS: "60"
+      KUBIDOOR_MONITORING__NOT_READY_THRESHOLD_SECONDS: "45"
+      KUBIDOOR_MONITORING__PENDING_THRESHOLD_SECONDS: "60"
+      # Safety defaults stay in force: recovery is OFF unless you explicitly enable it below.
+      KUBIDOOR_RECOVERY__ENABLED: ${KUBIDOOR_RECOVERY__ENABLED:-false}
+      KUBIDOOR_RECOVERY__DRY_RUN: ${KUBIDOOR_RECOVERY__DRY_RUN:-true}
+      KUBIDOOR_RECOVERY__REQUIRE_APPROVAL: ${KUBIDOOR_RECOVERY__REQUIRE_APPROVAL:-true}
+      KUBIDOOR_RECOVERY__ALLOWED_NAMESPACES: '["kubidoor-demo"]'
+      KUBIDOOR_API_TOKEN: ${KUBIDOOR_API_TOKEN:-}
+    volumes:
+      - ${KUBIDOOR_KUBECONFIG:-./demo/kubeconfig.internal}:/kube/config:ro
+      - kubidoor-data:/data
+    ports:
+      - "8000:8000"
+    networks: [default, kind]
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on: [kubidoor]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus]
+    restart: unless-stopped
+
+volumes:
+  kubidoor-data:
+
+networks:
+  kind:
+    # Created by `kind`; lets the container reach the kind API server.
+    external: true
+    name: kind

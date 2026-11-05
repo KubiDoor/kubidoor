@@ -1,0 +1,12 @@
+# Scrape configuration for KubiDoor (used by docker-compose and as a reference for in-cluster use).
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: kubidoor
+    metrics_path: /metrics
+    static_configs:
+      # docker-compose service name; use the Service DNS name when running in Kubernetes,
+      # e.g. kubidoor.kubidoor.svc:8000
+      - targets: ["kubidoor:8000"]

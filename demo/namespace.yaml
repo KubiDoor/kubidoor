@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubidoor-demo
+  labels:
+    # scripts/demo-*.sh refuse to delete a namespace that does not carry this label
+    kubidoor.io/demo: "true"

@@ -1,0 +1,42 @@
+# Monitoring RBAC: strictly READ-ONLY. No Secrets, no write verbs, no wildcards, no cluster-admin.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubidoor
+  namespace: kubidoor
+  labels:
+    app.kubernetes.io/name: kubidoor
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubidoor-monitor
+  labels:
+    app.kubernetes.io/name: kubidoor
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "pods", "events", "persistentvolumeclaims"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list"]
+  # Optional resource metrics (metrics-server). Safe to keep when metrics-server is absent.
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["nodes", "pods"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubidoor-monitor
+  labels:
+    app.kubernetes.io/name: kubidoor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubidoor-monitor
+subjects:
+  - kind: ServiceAccount
+    name: kubidoor
+    namespace: kubidoor

@@ -1,0 +1,15 @@
+# Scenario 3: OOMKilled. Allocates (and touches) ~300 MiB under a 64 MiB limit.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: demo-oom, namespace: kubidoor-demo, labels: {kubidoor.io/demo: "true"}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: demo-oom}}
+  template:
+    metadata: {labels: {app: demo-oom}}
+    spec:
+      containers:
+        - name: app
+          image: python:3.12-alpine
+          command: ["python", "-c", "b = b'x' * (300 * 1024 * 1024); import time; time.sleep(120)"]
+          resources: {requests: {memory: 32Mi}, limits: {memory: 64Mi}}

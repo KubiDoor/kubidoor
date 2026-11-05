@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kubidoor"
+version = "0.1.0"
+description = "KubiDoor is a lightweight Kubernetes operations tool for intelligent health monitoring, incident detection, root cause analysis, and safe automated recovery."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi==0.162.0",
+    "uvicorn==0.54.0",
+    "kubernetes==37.0.1",
+    "pydantic==2.14.2",
+    "pydantic-settings==2.16.2",
+    "SQLAlchemy==2.1.7",
+    "alembic==1.20.1",
+    "prometheus-client==0.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "pytest-asyncio==1.4.1.post1",
+    "httpx==0.28.1",
+    "ruff==0.17.3",
+    "mypy==2.4.1",
+    "types-PyYAML==6.0.12.20250915",
+]
+postgres = ["psycopg[binary]>=3.2,<4"]
+
+[project.scripts]
+kubidoor = "kubidoor.main:run"
+
+[tool.setuptools.packages.find]
+where = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra -m 'not e2e'"
+markers = ["integration: tests using the real database layer with a fake cluster", "e2e: end-to-end tests that need a real (kind) cluster; run with `make e2e`"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+ignore = ["S101", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S108"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "app"
+packages = ["kubidoor"]
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["kubernetes.*", "apscheduler.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["kubidoor.kubernetes.client"]
+disallow_untyped_calls = false
+warn_return_any = false

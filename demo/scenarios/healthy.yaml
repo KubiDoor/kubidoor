@@ -1,0 +1,15 @@
+# Control workload: must NEVER produce an incident.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: demo-healthy, namespace: kubidoor-demo, labels: {kubidoor.io/demo: "true"}}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: demo-healthy}}
+  template:
+    metadata: {labels: {app: demo-healthy}}
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          readinessProbe: {httpGet: {path: /, port: 80}, periodSeconds: 5}
+          resources: {requests: {cpu: 10m, memory: 16Mi}, limits: {memory: 64Mi}}

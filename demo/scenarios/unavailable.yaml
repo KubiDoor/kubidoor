@@ -1,0 +1,17 @@
+# Scenario 4: Unavailable Deployment. Pods run but never become Ready (readiness probe 404s),
+# so 0/3 replicas are available and the rollout hits its progress deadline.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: demo-unavailable, namespace: kubidoor-demo, labels: {kubidoor.io/demo: "true"}}
+spec:
+  replicas: 3
+  progressDeadlineSeconds: 60
+  selector: {matchLabels: {app: demo-unavailable}}
+  template:
+    metadata: {labels: {app: demo-unavailable}}
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          readinessProbe: {httpGet: {path: /this-does-not-exist, port: 80}, periodSeconds: 5}
+          resources: {requests: {cpu: 10m, memory: 16Mi}, limits: {memory: 64Mi}}
