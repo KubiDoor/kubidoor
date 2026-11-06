@@ -37,6 +37,9 @@ kubidoor = "kubidoor.main:run"
 [tool.setuptools.packages.find]
 where = ["app"]
 
+[tool.setuptools.package-data]
+kubidoor = ["ui/static/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

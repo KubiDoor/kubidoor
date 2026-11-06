@@ -7,10 +7,17 @@ from fastapi import APIRouter, Query, Response, status
 from kubidoor.api.dependencies import LimitQuery, OffsetQuery, ServicesDep
 from kubidoor.api.schemas.common import Page
 from kubidoor.api.schemas.recovery import ActionRequest, RecoveryActionOut, RejectRequest
+from kubidoor.core.config import RecoverySettings
 from kubidoor.core.security import ActorDep
 from kubidoor.core.types import ActionStatus
 
 router = APIRouter(prefix="/recovery", tags=["recovery"])
+
+
+@router.get("/policy", response_model=RecoverySettings)
+def get_policy(services: ServicesDep) -> RecoverySettings:
+    """The active recovery safety policy (read-only; changed only through configuration)."""
+    return services.settings.recovery
 
 
 @router.get("/actions", response_model=Page[RecoveryActionOut])

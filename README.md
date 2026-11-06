@@ -70,6 +70,20 @@ KUBIDOOR_KUBERNETES__CONTEXT=kind-kubidoor make run
 Other commands: `make docker-build`, `make demo-up`, `make demo-down`, `make e2e`, `make migrate`.
 The database schema is migrated automatically at start (`KUBIDOOR_AUTO_MIGRATE=false` to disable).
 
+## Web dashboard
+
+KubiDoor serves a built-in dashboard at **http://127.0.0.1:8000/** (it redirects to `/ui/`). It needs no build step and loads nothing from the internet.
+
+- **Overview**: a health strip for nodes, pods and deployments, incident counts by severity, what needs attention, resource usage (only when metrics-server is installed).
+- **Incidents**: filter by status, severity and namespace; open one to see what happened, the live diagnosis, the evidence, the history, and to acknowledge or resolve it.
+- **Recovery**: the active safety policy (read-only), and the approve / reject / run queue. Recovery stays off unless you enable it in the configuration.
+- **Cluster**: nodes, pods and deployments as the Kubernetes API reports them.
+- Light and dark themes, live refresh every 15 seconds, works on a phone.
+
+The page itself holds no data. If `KUBIDOOR_API_TOKEN` is set, click your name at the top right and enter the token (kept in that browser tab only). Your name is written to the audit log next to each action; it is not verified.
+
+Try it without a cluster, using made-up data: `make ui-preview`, then open http://127.0.0.1:8765/.
+
 ## Configuration
 
 All settings are environment variables prefixed `KUBIDOOR_` (nested: `__`; lists: JSON). Copy

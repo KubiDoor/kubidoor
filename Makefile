@@ -1,4 +1,4 @@
-.PHONY: install run test lint typecheck format e2e docker-build demo-up demo-down migrate check
+.PHONY: ui-preview install run test lint typecheck format e2e docker-build demo-up demo-down migrate check
 
 PY ?= python3
 VENV ?= .venv
@@ -11,6 +11,9 @@ install:  ## create a virtualenv and install KubiDoor with dev tools
 
 run:  ## run KubiDoor locally (uses your kubeconfig; recovery stays disabled unless configured)
 	$(BIN)/kubidoor
+
+ui-preview:  ## dashboard with a FAKE cluster (no Kubernetes needed): http://127.0.0.1:8765/
+	$(BIN)/python scripts/preview_ui.py
 
 test:  ## unit + integration tests (no cluster required)
 	$(BIN)/pytest

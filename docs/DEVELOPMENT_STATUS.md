@@ -16,7 +16,7 @@ _Last updated: 2026-11-05 (FINAL)_
   cause without evidence.
 
 ## Verified results (this sandbox, Python 3.13)
-- `pytest`: **226 passed**, 3 e2e deselected (skip cleanly when forced without a cluster).
+- `pytest`: **236 passed**, 3 e2e deselected (skip cleanly when forced without a cluster).
 - `ruff check` / `ruff format --check`: clean. `mypy` (strict, 58 files): clean.
 - Mutation checks: disabling any of {atomic claim, blocked namespaces, cooldown, enabled flag,
   approval, UID check, dry-run, rate limit, loop prevention} makes specific tests fail.
@@ -24,6 +24,11 @@ _Last updated: 2026-11-05 (FINAL)_
 - Real startup smoke test: migrations run, `/health` 200, `/ready` 503 without a cluster,
   per-stage error metrics, graceful SIGTERM shutdown. Clean non-editable install works.
 - Alembic renders valid PostgreSQL DDL offline (`alembic upgrade head --sql`).
+
+## Web dashboard (added after the first delivery)
+- `app/kubidoor/ui/static/` (index.html, app.css, app.js): overview, incidents + detail drawer with live diagnosis, recovery approve/reject/run, cluster tables, light/dark, responsive. Served at `/ui/` with a strict CSP; text-only rendering.
+- New endpoint `GET /api/v1/recovery/policy` (read-only). `make ui-preview` runs it on a fake cluster.
+- Verified in headless Chromium: no console/CSP errors, approve then dry-run flow works, screenshots reviewed (light, dark, mobile). `tests/integration/test_ui.py` covers headers, token behaviour, no external URLs, no innerHTML.
 
 ## NOT verified here (be transparent in the final report)
 - `docker build` / Compose: the Docker daemon is unreachable in this sandbox.
@@ -33,7 +38,7 @@ _Last updated: 2026-11-05 (FINAL)_
 
 ## Final state
 - README.md and all seven docs files are written; relative links verified (0 broken).
-- Final run: ruff clean, ruff format clean, mypy strict clean (58 files), pytest 226 passed
+- Final run: ruff clean, ruff format clean, mypy strict clean (60 files), pytest 236 passed
   (3 e2e deselected), stable over 5 repeated runs, clean non-editable install OK.
 
 ## Remaining (optional / needs an environment with Docker + kind)

@@ -1,13 +1,15 @@
 """KubiDoor application entry point (FastAPI app factory)."""
 
 import asyncio
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import uvicorn
-from fastapi import APIRouter, Depends, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -22,6 +24,12 @@ from kubidoor.database.session import render_url, run_migrations
 from kubidoor.logging.setup import configure_logging, get_logger
 
 logger = get_logger("main")
+
+UI_DIR = Path(__file__).parent / "ui" / "static"
+UI_CSP = (
+    "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+    "connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+)
 
 
 def _error(status: int, code: str, message: str, details: object = None) -> JSONResponse:
@@ -81,6 +89,25 @@ def create_app(settings: Settings | None = None, services: Services | None = Non
         api.include_router(module.router)
     app.include_router(health.router)
     app.include_router(api)
+
+    # Web dashboard: static files only. All data still comes from the (token-protected) API.
+    app.mount("/ui", StaticFiles(directory=UI_DIR, html=True), name="ui")
+
+    @app.get("/", include_in_schema=False)
+    def _root() -> RedirectResponse:
+        return RedirectResponse("/ui/")
+
+    @app.middleware("http")
+    async def _ui_security_headers(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        response = await call_next(request)
+        if request.url.path.startswith("/ui"):
+            response.headers["Content-Security-Policy"] = UI_CSP
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["Referrer-Policy"] = "no-referrer"
+            response.headers["Cache-Control"] = "no-cache"
+        return response
 
     @app.exception_handler(KubiDoorError)
     async def _app_error(_: Request, exc: KubiDoorError) -> JSONResponse:
